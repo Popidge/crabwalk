@@ -14,6 +14,7 @@ import {
 import '@xyflow/react/dist/style.css'
 import { SessionNode } from './SessionNode'
 import { ActionNode } from './ActionNode'
+import { CrabNode } from './CrabNode'
 import { layoutGraph } from '~/lib/graph-layout'
 import type { MonitorSession, MonitorAction } from '~/integrations/clawdbot'
 
@@ -24,10 +25,13 @@ interface ActionGraphProps {
   onSessionSelect: (key: string | null) => void
 }
 
+const CRAB_NODE_ID = 'crab-origin'
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const nodeTypes: NodeTypes = {
   session: SessionNode as any,
   action: ActionNode as any,
+  crab: CrabNode as any,
 }
 
 export function ActionGraph({
@@ -45,6 +49,15 @@ export function ActionGraph({
   // Build nodes
   const rawNodes = useMemo(() => {
     const nodes: Node[] = []
+
+    // Always add the central crab node
+    const hasActivity = sessions.length > 0 || visibleActions.length > 0
+    nodes.push({
+      id: CRAB_NODE_ID,
+      type: 'crab',
+      position: { x: 0, y: 0 },
+      data: { active: hasActivity },
+    })
 
     // Add session nodes
     const visibleSessions = selectedSession
@@ -76,6 +89,22 @@ export function ActionGraph({
   // Build edges
   const rawEdges = useMemo(() => {
     const edges: Edge[] = []
+
+    // Get visible sessions for edge creation
+    const visibleSessions = selectedSession
+      ? sessions.filter((s) => s.key === selectedSession)
+      : sessions
+
+    // Connect crab to each session
+    for (const session of visibleSessions) {
+      edges.push({
+        id: `e-crab-${session.key}`,
+        source: CRAB_NODE_ID,
+        target: `session-${session.key}`,
+        markerEnd: { type: MarkerType.ArrowClosed },
+        style: { stroke: '#06b6d4', strokeWidth: 2 },
+      })
+    }
 
     // Group actions by runId
     const runActions = new Map<string, MonitorAction[]>()
@@ -117,11 +146,18 @@ export function ActionGraph({
     }
 
     return edges
-  }, [visibleActions])
+  }, [sessions, visibleActions, selectedSession])
 
   // Apply layout
   const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(() => {
-    if (rawNodes.length === 0) return { nodes: [], edges: [] }
+    // Always have at least the crab node
+    if (rawNodes.length === 1) {
+      // Just the crab node, center it
+      return {
+        nodes: [{ ...rawNodes[0]!, position: { x: 0, y: 0 } }],
+        edges: [],
+      }
+    }
     return layoutGraph(rawNodes, rawEdges, {
       direction: 'TB',
       nodeWidth: 200,
@@ -170,6 +206,7 @@ export function ActionGraph({
         <MiniMap
           className="bg-gray-800! border-gray-700! rounded-lg!"
           nodeColor={(node) => {
+            if (node.type === 'crab') return '#f97316' // orange for crab
             if (node.type === 'session') return '#06b6d4'
             return '#6b7280'
           }}

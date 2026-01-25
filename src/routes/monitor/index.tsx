@@ -189,35 +189,12 @@ function MonitorPage() {
 
         {/* Graph area */}
         <div className="flex-1">
-          {sessions.length === 0 && !connecting ? (
-            <div className="h-full flex items-center justify-center text-gray-500">
-              <div className="text-center">
-                <Activity size={48} className="mx-auto mb-4 opacity-50" />
-                <p className="text-lg mb-2">No active sessions</p>
-                <p className="text-sm">
-                  {connected
-                    ? 'Waiting for agent activity...'
-                    : 'Connect to clawdbot gateway to start monitoring'}
-                </p>
-                {!connected && (
-                  <button
-                    onClick={handleConnect}
-                    disabled={connecting}
-                    className="mt-4 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-sm font-medium disabled:opacity-50"
-                  >
-                    Connect
-                  </button>
-                )}
-              </div>
-            </div>
-          ) : (
-            <ActionGraph
-              sessions={sessions}
-              actions={actions}
-              selectedSession={selectedSession}
-              onSessionSelect={setSelectedSession}
-            />
-          )}
+          <ActionGraph
+            sessions={sessions}
+            actions={actions}
+            selectedSession={selectedSession}
+            onSessionSelect={setSelectedSession}
+          />
         </div>
       </div>
     </div>
