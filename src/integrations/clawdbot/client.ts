@@ -69,8 +69,9 @@ export class ClawdbotClient {
 
       this.ws.on('message', (data) => {
         try {
-          const msg = JSON.parse(data.toString())
-          console.log('[clawdbot] Received:', msg.type || 'unknown', msg.type === 'hello-ok' ? '(connected!)' : '')
+          const raw = data.toString()
+          const msg = JSON.parse(raw)
+          console.log('[clawdbot] Received:', msg.type || 'unknown', msg.type === 'hello-ok' ? '(connected!)' : '', raw.slice(0, 200))
           this.handleMessage(msg, resolve, reject, timeout)
         } catch (e) {
           console.error('[clawdbot] Failed to parse message:', e)
@@ -83,10 +84,12 @@ export class ClawdbotClient {
         reject(err)
       })
 
-      this.ws.on('close', () => {
+      this.ws.on('close', (code, reason) => {
         clearTimeout(timeout)
+        console.log('[clawdbot] WebSocket closed:', code, reason?.toString())
         this._connected = false
-        this.scheduleReconnect()
+        // Disable auto-reconnect for debugging
+        // this.scheduleReconnect()
       })
     })
   }
