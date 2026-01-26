@@ -18,25 +18,11 @@ import {
   SettingsPanel,
   StatusIndicator,
 } from '~/components/monitor'
+import { CrabIdleAnimation } from '~/components/ani'
 
 export const Route = createFileRoute('/monitor/')({
   component: MonitorPageWrapper,
 })
-
-// Crab logo for header
-function CrabLogo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 100 60" className={className} fill="currentColor">
-      <ellipse cx="50" cy="35" rx="25" ry="18" />
-      <path d="M15 30 Q5 25 8 18 Q12 12 20 15 Q25 18 25 25 Q22 30 15 30Z" />
-      <circle cx="8" cy="15" r="5" />
-      <path d="M85 30 Q95 25 92 18 Q88 12 80 15 Q75 18 75 25 Q78 30 85 30Z" />
-      <circle cx="92" cy="15" r="5" />
-      <circle cx="42" cy="25" r="4" fill="#0a0a0f" />
-      <circle cx="58" cy="25" r="4" fill="#0a0a0f" />
-    </svg>
-  )
-}
 
 // Wrapper to ensure client-only rendering (useLiveQuery needs client)
 function MonitorPageWrapper() {
@@ -51,12 +37,9 @@ function MonitorPageWrapper() {
           animate={{ opacity: 1 }}
           className="flex flex-col items-center gap-4"
         >
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-          >
-            <CrabLogo className="w-16 h-16 text-crab-500 crab-icon-glow" />
-          </motion.div>
+          <div className="crab-icon-glow">
+            <CrabIdleAnimation className="w-16 h-16" />
+          </div>
           <div className="flex items-center gap-3">
             <Loader2 size={18} className="animate-spin text-crab-400" />
             <span className="font-display text-sm text-gray-400 tracking-wide uppercase">
@@ -208,7 +191,9 @@ function MonitorPage() {
           </Link>
 
           <div className="flex items-center gap-3">
-            <CrabLogo className="w-7 h-7 text-crab-500 crab-icon-glow" />
+            <div className="crab-icon-glow">
+              <CrabIdleAnimation className="w-7 h-7" />
+            </div>
             <h1 className="font-arcade text-xs text-crab-400 glow-red tracking-wider">
               MONITOR
             </h1>

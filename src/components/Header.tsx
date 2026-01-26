@@ -2,21 +2,7 @@ import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Activity, Home, Menu, X } from 'lucide-react'
-
-// Inline crab logo
-function CrabLogo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 100 60" className={className} fill="currentColor">
-      <ellipse cx="50" cy="35" rx="25" ry="18" />
-      <path d="M15 30 Q5 25 8 18 Q12 12 20 15 Q25 18 25 25 Q22 30 15 30Z" />
-      <circle cx="8" cy="15" r="5" />
-      <path d="M85 30 Q95 25 92 18 Q88 12 80 15 Q75 18 75 25 Q78 30 85 30Z" />
-      <circle cx="92" cy="15" r="5" />
-      <circle cx="42" cy="25" r="4" fill="#0a0a0f" />
-      <circle cx="58" cy="25" r="4" fill="#0a0a0f" />
-    </svg>
-  )
-}
+import { CrabIdleAnimation } from '~/components/ani'
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
@@ -36,7 +22,9 @@ export function Header() {
         </button>
 
         <Link to="/" className="ml-4 flex items-center gap-3 group">
-          <CrabLogo className="w-8 h-8 text-crab-500 group-hover:text-crab-400 transition-colors crab-icon-glow" />
+          <div className="crab-icon-glow">
+            <CrabIdleAnimation className="w-8 h-8" />
+          </div>
           <span className="font-arcade text-sm text-crab-400 glow-red tracking-wider">
             CRABWALK
           </span>
@@ -77,7 +65,7 @@ export function Header() {
               {/* Header */}
               <div className="relative flex items-center justify-between p-4 border-b-2 border-shell-700 bg-shell-950/50">
                 <div className="flex items-center gap-3">
-                  <CrabLogo className="w-7 h-7 text-crab-500" />
+                  <CrabIdleAnimation className="w-7 h-7" />
                   <h2 className="font-display text-lg font-semibold text-gray-200 tracking-wide">
                     NAVIGATION
                   </h2>

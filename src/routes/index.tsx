@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
+import { CrabIdleAnimation } from '~/components/ani'
 
 export const Route = createFileRoute('/')({
   component: Home,
 })
 
-// Crab silhouette SVG component
+// Crab silhouette SVG for background decorations
 function CrabSilhouette({ className }: { className?: string }) {
   return (
     <svg
@@ -13,21 +14,15 @@ function CrabSilhouette({ className }: { className?: string }) {
       className={className}
       fill="currentColor"
     >
-      {/* Body */}
       <ellipse cx="50" cy="35" rx="25" ry="18" />
-      {/* Left claw */}
       <path d="M15 30 Q5 25 8 18 Q12 12 20 15 Q25 18 25 25 Q22 30 15 30Z" />
       <circle cx="8" cy="15" r="5" />
-      {/* Right claw */}
       <path d="M85 30 Q95 25 92 18 Q88 12 80 15 Q75 18 75 25 Q78 30 85 30Z" />
       <circle cx="92" cy="15" r="5" />
-      {/* Legs left */}
       <path d="M28 40 Q15 45 10 52" strokeWidth="3" stroke="currentColor" fill="none" />
       <path d="M26 45 Q12 52 8 58" strokeWidth="3" stroke="currentColor" fill="none" />
-      {/* Legs right */}
       <path d="M72 40 Q85 45 90 52" strokeWidth="3" stroke="currentColor" fill="none" />
       <path d="M74 45 Q88 52 92 58" strokeWidth="3" stroke="currentColor" fill="none" />
-      {/* Eyes */}
       <circle cx="42" cy="25" r="4" fill="#0a0a0f" />
       <circle cx="58" cy="25" r="4" fill="#0a0a0f" />
     </svg>
@@ -49,7 +44,7 @@ function Home() {
       {/* Main content */}
       <div className="relative flex items-center justify-center min-h-[calc(100vh-72px)] px-4">
         <div className="text-center max-w-2xl">
-          {/* Crab icon with glow */}
+          {/* Animated crab with glow */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -57,13 +52,15 @@ function Home() {
             className="mb-8"
           >
             <div className="relative inline-block">
-              <CrabSilhouette className="w-32 h-32 text-crab-500 crab-icon-glow mx-auto" />
+              <div className="crab-icon-glow">
+                <CrabIdleAnimation className="w-32 h-32" />
+              </div>
               <motion.div
-                className="absolute inset-0 flex items-center justify-center"
+                className="absolute inset-0 flex items-center justify-center -z-10"
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
               >
-                <div className="w-20 h-20 rounded-full bg-crab-500/20 blur-xl" />
+                <div className="w-24 h-24 rounded-full bg-crab-500/20 blur-xl" />
               </motion.div>
             </div>
           </motion.div>

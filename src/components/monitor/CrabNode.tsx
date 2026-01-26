@@ -1,27 +1,9 @@
 import { Handle, Position } from '@xyflow/react'
 import { motion } from 'framer-motion'
+import { CrabIdleAnimation } from '~/components/ani'
 
 interface CrabNodeProps {
   data: { active: boolean }
-}
-
-// Crab silhouette SVG
-function CrabSilhouette({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 100 60" className={className} fill="currentColor">
-      <ellipse cx="50" cy="35" rx="25" ry="18" />
-      <path d="M15 30 Q5 25 8 18 Q12 12 20 15 Q25 18 25 25 Q22 30 15 30Z" />
-      <circle cx="8" cy="15" r="5" />
-      <path d="M85 30 Q95 25 92 18 Q88 12 80 15 Q75 18 75 25 Q78 30 85 30Z" />
-      <circle cx="92" cy="15" r="5" />
-      <path d="M28 40 Q15 45 10 52" strokeWidth="3" stroke="currentColor" fill="none" />
-      <path d="M26 45 Q12 52 8 58" strokeWidth="3" stroke="currentColor" fill="none" />
-      <path d="M72 40 Q85 45 90 52" strokeWidth="3" stroke="currentColor" fill="none" />
-      <path d="M74 45 Q88 52 92 58" strokeWidth="3" stroke="currentColor" fill="none" />
-      <circle cx="42" cy="25" r="4" fill="#0a0a0f" />
-      <circle cx="58" cy="25" r="4" fill="#0a0a0f" />
-    </svg>
-  )
 }
 
 export function CrabNode({ data }: CrabNodeProps) {
@@ -48,8 +30,10 @@ export function CrabNode({ data }: CrabNodeProps) {
         }}
       />
 
-      {/* Crab icon */}
-      <CrabSilhouette className="w-20 h-20 text-crab-500 relative z-10 crab-icon-glow" />
+      {/* Animated crab */}
+      <div className="relative z-10 crab-icon-glow">
+        <CrabIdleAnimation className="w-20 h-20" />
+      </div>
 
       <Handle
         type="source"
