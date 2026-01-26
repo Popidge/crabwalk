@@ -142,11 +142,9 @@ function MonitorPage() {
   // Subscribe to real-time events
   useEffect(() => {
     if (!connected) return
-    console.log('[monitor] starting events subscription')
 
     const subscription = trpc.clawdbot.events.subscribe(undefined, {
       onData: (data) => {
-        console.log('[monitor] received event:', data.type, data.action?.type || data.session?.status)
         if (data.type === 'session' && data.session) {
           const key = data.session.key
           if (key && data.session.status) {
@@ -163,7 +161,6 @@ function MonitorPage() {
     })
 
     return () => {
-      console.log('[monitor] ending events subscription')
       subscription.unsubscribe()
     }
   }, [connected])

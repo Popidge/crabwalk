@@ -86,12 +86,14 @@ const clawdbotRouter = router({
       action?: MonitorAction
     }>((emit) => {
       const client = getClawdbotClient()
-      console.log('[trpc] events subscription started, client connected:', client.connected)
 
       const unsubscribe = client.onEvent((event) => {
         const parsed = parseEventFrame(event)
         if (parsed) {
-          console.log('[trpc] emitting event:', parsed.action?.type || parsed.session?.status)
+          // Only log non-delta events to reduce noise
+          if (parsed.action?.type !== 'delta') {
+            console.log('[trpc] event:', parsed.action?.type || parsed.session?.status)
+          }
           if (parsed.session) {
             emit.next({ type: 'session', session: parsed.session })
           }
@@ -102,7 +104,6 @@ const clawdbotRouter = router({
       })
 
       return () => {
-        console.log('[trpc] events subscription ended')
         unsubscribe()
       }
     })

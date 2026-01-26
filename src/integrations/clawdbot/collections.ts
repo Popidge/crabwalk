@@ -27,8 +27,46 @@ export function upsertSession(session: MonitorSession) {
   }
 }
 
-// Helper to add action
+// Helper to add or update action
+// For deltas, we aggregate into a single "streaming" action per runId
 export function addAction(action: MonitorAction) {
+  // For deltas, use runId as the key (aggregate all deltas)
+  if (action.type === 'delta') {
+    const streamingId = `${action.runId}-stream`
+    const existing = actionsCollection.state.get(streamingId)
+    if (existing) {
+      // Append content to existing streaming action
+      actionsCollection.update(streamingId, (draft) => {
+        draft.content = (draft.content || '') + (action.content || '')
+        draft.seq = action.seq
+        draft.timestamp = action.timestamp
+      })
+    } else {
+      // Create new streaming action
+      actionsCollection.insert({
+        ...action,
+        id: streamingId,
+      })
+    }
+    return
+  }
+
+  // For final/error/aborted, update the streaming action's type
+  if (action.type === 'final' || action.type === 'error' || action.type === 'aborted') {
+    const streamingId = `${action.runId}-stream`
+    const streaming = actionsCollection.state.get(streamingId)
+    if (streaming) {
+      actionsCollection.update(streamingId, (draft) => {
+        draft.type = action.type
+        draft.seq = action.seq
+        draft.timestamp = action.timestamp
+      })
+      return
+    }
+    // No streaming action found, create as-is
+  }
+
+  // For tool_call/tool_result or orphaned finals, add as new
   const existing = actionsCollection.state.get(action.id)
   if (!existing) {
     actionsCollection.insert(action)
