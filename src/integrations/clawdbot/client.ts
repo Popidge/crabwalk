@@ -103,21 +103,30 @@ export class ClawdbotClient {
       return
     }
 
-    // Sign the nonce with HMAC-SHA256
+    if (this.ws?.readyState !== WebSocket.OPEN) {
+      console.error('[clawdbot] WebSocket not open for challenge response')
+      return
+    }
+
+    // Sign nonce+timestamp with HMAC-SHA256
+    const message = `${challenge.nonce}:${challenge.ts}`
     const signature = createHmac('sha256', this.token)
-      .update(challenge.nonce)
+      .update(message)
       .digest('hex')
 
+    // Try format: type + connect params + challenge response
     const response = {
+      type: 'connect',
       ...createConnectParams(this.token),
       challenge: {
         nonce: challenge.nonce,
+        ts: challenge.ts,
         signature,
       },
     }
 
-    console.log('[clawdbot] Sending challenge response')
-    this.ws?.send(JSON.stringify(response))
+    console.log('[clawdbot] Sending challenge response:', JSON.stringify(response).slice(0, 300))
+    this.ws.send(JSON.stringify(response))
   }
 
   private handleMessage(
