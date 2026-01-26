@@ -117,11 +117,11 @@ export interface MonitorAction {
   sessionKey: string
   seq: number
   type: 'delta' | 'final' | 'aborted' | 'error' | 'tool_call' | 'tool_result'
+  eventType: 'chat' | 'agent' | 'system'
   timestamp: number
   content?: string
   toolName?: string
   toolArgs?: unknown
-  parentId?: string
 }
 
 // Utility functions

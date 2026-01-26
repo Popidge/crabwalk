@@ -1,7 +1,15 @@
 import { memo, useState } from 'react'
 import { Handle, Position } from '@xyflow/react'
 import { motion } from 'framer-motion'
-import { Loader2, CheckCircle, XCircle, Wrench, MessageSquare } from 'lucide-react'
+import {
+  Loader2,
+  CheckCircle,
+  XCircle,
+  Wrench,
+  MessageSquare,
+  MessageCircle,
+  Bot,
+} from 'lucide-react'
 import type { MonitorAction } from '~/integrations/clawdbot'
 
 interface ActionNodeProps {
@@ -9,7 +17,15 @@ interface ActionNodeProps {
   selected?: boolean
 }
 
-const typeConfig: Record<
+function formatTime(ts: number): string {
+  return new Date(ts).toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  })
+}
+
+const stateConfig: Record<
   MonitorAction['type'],
   {
     icon: typeof Loader2
@@ -56,13 +72,21 @@ const typeConfig: Record<
   },
 }
 
+const eventTypeLabels: Record<MonitorAction['eventType'], { label: string; icon: typeof MessageCircle }> = {
+  chat: { label: 'Chat', icon: MessageCircle },
+  agent: { label: 'Agent', icon: Bot },
+  system: { label: 'System', icon: MessageSquare },
+}
+
 export const ActionNode = memo(function ActionNode({
   data,
   selected,
 }: ActionNodeProps) {
   const [expanded, setExpanded] = useState(false)
-  const config = typeConfig[data.type]
-  const Icon = config.icon
+  const state = stateConfig[data.type]
+  const eventInfo = eventTypeLabels[data.eventType || 'chat']
+  const StateIcon = state.icon
+  const EventIcon = eventInfo.icon
 
   // Safely get content as string
   const contentStr = typeof data.content === 'string'
@@ -72,8 +96,8 @@ export const ActionNode = memo(function ActionNode({
       : null
 
   const truncatedContent = contentStr
-    ? contentStr.length > 80
-      ? contentStr.slice(0, 80) + '...'
+    ? contentStr.length > 100
+      ? contentStr.slice(0, 100) + '...'
       : contentStr
     : null
 
@@ -86,34 +110,38 @@ export const ActionNode = memo(function ActionNode({
       transition={{ duration: 0.2 }}
       onClick={() => setExpanded(!expanded)}
       className={`
-        px-3 py-2 rounded-md border min-w-[160px] max-w-[280px] cursor-pointer
-        ${config.color}
+        px-3 py-2 rounded-md border min-w-[180px] max-w-[300px] cursor-pointer
+        ${state.color}
         ${selected ? 'ring-2 ring-white/50' : ''}
       `}
     >
       <Handle type="target" position={Position.Top} className="bg-gray-500! w-2! h-2!" />
 
+      {/* Header: Event type + state */}
       <div className="flex items-center gap-2 mb-1">
-        <Icon
-          size={14}
-          className={`${config.iconColor} ${config.animate ? 'animate-spin' : ''}`}
+        <EventIcon size={14} className="text-gray-400" />
+        <span className="text-xs font-medium text-gray-200">
+          {eventInfo.label} Event
+        </span>
+        <StateIcon
+          size={12}
+          className={`${state.iconColor} ${state.animate ? 'animate-spin' : ''} ml-auto`}
         />
-        <span className="text-xs font-medium text-gray-200 capitalize">
-          {data.type.replace('_', ' ')}
-        </span>
-        <span className="text-[10px] text-gray-500 ml-auto">
-          #{data.seq}
-        </span>
+      </div>
+
+      {/* Timestamp */}
+      <div className="text-[10px] text-gray-500 mb-1">
+        {formatTime(data.timestamp)}
       </div>
 
       {data.toolName && (
         <div className="text-xs text-purple-300 mb-1 font-mono">
-          {data.toolName}
+          🔧 {data.toolName}
         </div>
       )}
 
       {truncatedContent && (
-        <div className="text-[11px] text-gray-300 leading-tight">
+        <div className="text-[11px] text-gray-300 leading-tight whitespace-pre-wrap">
           {expanded ? fullContent : truncatedContent}
         </div>
       )}

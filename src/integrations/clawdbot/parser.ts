@@ -28,6 +28,7 @@ export function chatEventToAction(event: ChatEvent): MonitorAction {
     sessionKey: event.sessionKey,
     seq: event.seq,
     type: event.state,
+    eventType: 'chat',
     timestamp: Date.now(),
   }
 
@@ -102,11 +103,11 @@ export function agentEventToAction(event: AgentEvent): MonitorAction {
     sessionKey: event.stream,
     seq: event.seq,
     type,
+    eventType: 'agent' as const,
     timestamp: event.ts,
     content,
     toolName,
     toolArgs,
-    parentId: event.seq > 0 ? `${event.runId}-${event.seq - 1}` : undefined,
   }
 }
 
