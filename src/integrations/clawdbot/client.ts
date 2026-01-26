@@ -1,4 +1,5 @@
 import WebSocket from 'ws'
+import { createHmac } from 'crypto'
 import {
   type GatewayFrame,
   type RequestFrame,
@@ -11,6 +12,11 @@ import {
   type SessionsListParams,
   createConnectParams,
 } from './protocol'
+
+interface ChallengePayload {
+  nonce: string
+  ts: number
+}
 
 type EventCallback = (event: EventFrame) => void
 
@@ -53,25 +59,21 @@ export class ClawdbotClient {
       }
 
       this.ws.once('open', () => {
-        console.log('[clawdbot] WebSocket open, sending connect params')
-        // Defer to ensure readyState is actually OPEN
-        setImmediate(() => {
-          if (this.ws?.readyState === WebSocket.OPEN) {
-            const params = createConnectParams(this.token)
-            console.log('[clawdbot] Sending params:', JSON.stringify(params).slice(0, 100))
-            this.ws.send(JSON.stringify(params))
-          } else {
-            clearTimeout(timeout)
-            reject(new Error('WebSocket not ready after open event'))
-          }
-        })
+        console.log('[clawdbot] WebSocket open, waiting for challenge...')
       })
 
       this.ws.on('message', (data) => {
         try {
           const raw = data.toString()
           const msg = JSON.parse(raw)
-          console.log('[clawdbot] Received:', msg.type || 'unknown', msg.type === 'hello-ok' ? '(connected!)' : '', raw.slice(0, 200))
+          console.log('[clawdbot] Received:', msg.type || 'unknown', msg.event || '', raw.slice(0, 200))
+
+          // Handle challenge-response auth
+          if (msg.type === 'event' && msg.event === 'connect.challenge') {
+            this.handleChallenge(msg.payload as ChallengePayload)
+            return
+          }
+
           this.handleMessage(msg, resolve, reject, timeout)
         } catch (e) {
           console.error('[clawdbot] Failed to parse message:', e)
@@ -88,10 +90,34 @@ export class ClawdbotClient {
         clearTimeout(timeout)
         console.log('[clawdbot] WebSocket closed:', code, reason?.toString())
         this._connected = false
-        // Disable auto-reconnect for debugging
-        // this.scheduleReconnect()
+        if (this._connected === false && code !== 1000) {
+          this.scheduleReconnect()
+        }
       })
     })
+  }
+
+  private handleChallenge(challenge: ChallengePayload) {
+    if (!this.token) {
+      console.error('[clawdbot] No token for challenge response')
+      return
+    }
+
+    // Sign the nonce with HMAC-SHA256
+    const signature = createHmac('sha256', this.token)
+      .update(challenge.nonce)
+      .digest('hex')
+
+    const response = {
+      ...createConnectParams(this.token),
+      challenge: {
+        nonce: challenge.nonce,
+        signature,
+      },
+    }
+
+    console.log('[clawdbot] Sending challenge response')
+    this.ws?.send(JSON.stringify(response))
   }
 
   private handleMessage(
