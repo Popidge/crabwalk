@@ -1,7 +1,24 @@
 import { useState, useCallback, useEffect } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
+import { Github } from 'lucide-react'
 import { CrabIdleAnimation, CrabJumpAnimation, CrabAttackAnimation } from '~/components/ani'
+
+function XIcon({ size = 14, className }: { size?: number; className?: string }) {
+  return (
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z" />
+    </svg>
+  )
+}
 
 // All crab animation frames to preload
 const ALL_CRAB_FRAMES = [
@@ -13,29 +30,6 @@ const ALL_CRAB_FRAMES = [
 export const Route = createFileRoute('/')({
   component: Home,
 })
-
-// Crab silhouette SVG for background decorations
-function CrabSilhouette({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 100 60"
-      className={className}
-      fill="currentColor"
-    >
-      <ellipse cx="50" cy="35" rx="25" ry="18" />
-      <path d="M15 30 Q5 25 8 18 Q12 12 20 15 Q25 18 25 25 Q22 30 15 30Z" />
-      <circle cx="8" cy="15" r="5" />
-      <path d="M85 30 Q95 25 92 18 Q88 12 80 15 Q75 18 75 25 Q78 30 85 30Z" />
-      <circle cx="92" cy="15" r="5" />
-      <path d="M28 40 Q15 45 10 52" strokeWidth="3" stroke="currentColor" fill="none" />
-      <path d="M26 45 Q12 52 8 58" strokeWidth="3" stroke="currentColor" fill="none" />
-      <path d="M72 40 Q85 45 90 52" strokeWidth="3" stroke="currentColor" fill="none" />
-      <path d="M74 45 Q88 52 92 58" strokeWidth="3" stroke="currentColor" fill="none" />
-      <circle cx="42" cy="25" r="4" fill="#0a0a0f" />
-      <circle cx="58" cy="25" r="4" fill="#0a0a0f" />
-    </svg>
-  )
-}
 
 type CrabState = 'idle' | 'jumping' | 'attacking'
 
@@ -79,10 +73,6 @@ function Home() {
       <div className="absolute inset-0 bg-linear-to-br from-crab-950/20 via-transparent to-shell-950" />
       <div className="absolute top-0 left-0 w-96 h-96 bg-crab-600/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
       <div className="absolute bottom-0 right-0 w-80 h-80 bg-neon-coral/5 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
-
-      {/* Subtle crab silhouettes in background */}
-      <CrabSilhouette className="absolute top-20 right-20 w-24 h-24 text-crab-900/10 rotate-12" />
-      <CrabSilhouette className="absolute bottom-32 left-16 w-16 h-16 text-crab-900/8 -rotate-6" />
 
       {/* Main content */}
       <div className="relative flex items-center justify-center min-h-screen px-4">
@@ -132,7 +122,7 @@ function Home() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="font-console font-bold text-lg text-gray-400 mb-4 tracking-wide uppercase"
           >
-            Clawdbot Companion Monitor
+            Open-Source Clawdbot Companion
           </motion.p>
 
           {/* Console-style description */}
@@ -171,12 +161,39 @@ function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.8 }}
-            className="mt-6 inline-flex items-center gap-2 px-3 py-1.5 bg-shell-900/80 border border-shell-700 rounded-full"
+            className="mt-6 inline-flex items-center gap-2 px-3 py-1.5 bg-shell-900/80 rounded-full"
           >
             <span className="w-2 h-2 rounded-full bg-neon-mint animate-pulse" />
             <span className="font-console font-bold text-[11px] uppercase text-shell-500">
               system online • v1.0.1
             </span>
+          </motion.div>
+
+          {/* Social links */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.9 }}
+            className="mt-6 flex items-center justify-center gap-6 font-console text-sm"
+          >
+            <a
+              href="https://github.com/luccast/crabwalk"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 text-shell-500 hover:text-crab-400 transition-colors"
+            >
+              <Github size={16} />
+              <span>Contribute on Github</span>
+            </a>
+            <a
+              href="https://x.com/luccasveg"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 text-shell-500 hover:text-crab-400 transition-colors"
+            >
+              <XIcon size={16} />
+              <span>@luccasveg</span>
+            </a>
           </motion.div>
         </div>
       </div>
