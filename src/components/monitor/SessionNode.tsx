@@ -55,7 +55,7 @@ export const SessionNode = memo(function SessionNode({
 
   const handleCopyKey = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
-    navigator.clipboard.writeText(data.key)
+    navigator.clipboard.writeText(data.key).catch(() => {})
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
   }, [data.key])

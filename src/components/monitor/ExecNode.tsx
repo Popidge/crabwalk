@@ -88,7 +88,7 @@ export const ExecNode = memo(function ExecNode({ data, selected }: ExecNodeProps
 
   const handleCopyPid = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
-    navigator.clipboard.writeText(String(data.pid))
+    navigator.clipboard.writeText(String(data.pid)).catch(() => {})
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
   }, [data.pid])
