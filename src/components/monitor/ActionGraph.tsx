@@ -33,6 +33,11 @@ interface ActionGraphProps {
   onSessionSelect: (key: string | null) => void
 }
 
+/** Cast domain data to ReactFlow's Node data type */
+function nodeData<T>(data: T): Record<string, unknown> {
+  return data as Record<string, unknown>
+}
+
 const CRAB_NODE_ID = 'crab-origin'
 const CHASER_CRAB_ID = 'chaser-crab'
 
@@ -122,7 +127,7 @@ function ActionGraphInner({
         id: `session-${session.key}`,
         type: 'session',
         position: { x: 0, y: 0 },
-        data: session as unknown as Record<string, unknown>,
+        data: nodeData(session),
       })
     }
 
@@ -131,7 +136,7 @@ function ActionGraphInner({
         id: `action-${action.id}`,
         type: 'action',
         position: { x: 0, y: 0 },
-        data: action as unknown as Record<string, unknown>,
+        data: nodeData(action),
       })
     }
 
@@ -140,7 +145,7 @@ function ActionGraphInner({
         id: `exec-${exec.id}`,
         type: 'exec',
         position: { x: 0, y: 0 },
-        data: exec as unknown as Record<string, unknown>,
+        data: nodeData(exec),
       })
     }
 

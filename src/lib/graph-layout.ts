@@ -5,6 +5,11 @@ import type {
   MonitorExecProcess,
 } from '~/integrations/clawdbot'
 
+/** Cast domain data to ReactFlow's Node data type */
+function nodeData<T>(data: T): Record<string, unknown> {
+  return data as Record<string, unknown>
+}
+
 export interface LayoutOptions {
   direction?: 'TB' | 'LR' | 'BT' | 'RL'
   nodeWidth?: number
@@ -266,7 +271,7 @@ export function layoutGraph(
         id: item.nodeId,
         type: item.type,
         position: { x: columnX, y: currentY },
-        data: item.data as Record<string, unknown>,
+        data: nodeData(item.data),
       })
       positionedNodeIds.add(item.nodeId)
 
