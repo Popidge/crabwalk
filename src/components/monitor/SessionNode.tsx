@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useState } from 'react'
+import { memo, useCallback, useEffect, useState } from 'react'
 import { Handle, Position } from '@xyflow/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Users, User, Clock, Copy, Check } from 'lucide-react'
@@ -37,16 +37,21 @@ export const SessionNode = memo(function SessionNode({
   selected,
 }: SessionNodeProps) {
   const [copied, setCopied] = useState(false)
-  
+  const [, setTick] = useState(0)
+
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 30_000)
+    return () => clearInterval(id)
+  }, [])
+
   // Detect if this is a subagent session by checking if platform is "subagent" or if key contains "subagent"
   const isSubagent = data.platform === 'subagent' || data.key.includes('subagent') || Boolean(data.spawnedBy)
   const platformIcon = isSubagent ? platformIcons.subagent : (platformIcons[data.platform] ?? '📱')
   const displayPlatform = isSubagent ? 'subagent' : data.platform
 
-  const relativeTime = useMemo(() => {
-    if (!data.lastActivityAt || data.lastActivityAt <= 0) return null
-    return formatRelativeTime(data.lastActivityAt)
-  }, [data.lastActivityAt])
+  const relativeTime = (!data.lastActivityAt || data.lastActivityAt <= 0)
+    ? null
+    : formatRelativeTime(data.lastActivityAt)
 
   const handleCopyKey = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
