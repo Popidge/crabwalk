@@ -83,6 +83,9 @@ function MonitorPage() {
   // Settings panel state
   const [settingsOpen, setSettingsOpen] = useState(false)
 
+  // Hydrating state for large graph loading
+  const [isHydrating, setIsHydrating] = useState(false)
+
   // Live queries from TanStack DB collections
   const sessionsQuery = useLiveQuery(sessionsCollection)
   const actionsQuery = useLiveQuery(actionsCollection)
@@ -160,17 +163,20 @@ function MonitorPage() {
     try {
       const status = await trpc.clawdbot.persistenceStatus.query()
       if (status.sessionCount > 0 || status.actionCount > 0 || status.execEventCount > 0) {
+        setIsHydrating(true)
         const data = await trpc.clawdbot.persistenceHydrate.query()
         hydrateFromServer(data.sessions, data.actions, data.execEvents ?? [])
         console.log(
           `[monitor] hydrated ${data.sessions.length} sessions, ${data.actions.length} actions, ${(data.execEvents ?? []).length} exec events`
         )
+        setIsHydrating(false)
       }
       setPersistenceEnabled(status.enabled)
       setPersistenceStartedAt(status.startedAt)
       setPersistenceSessionCount(status.sessionCount)
       setPersistenceActionCount(status.actionCount)
     } catch (e) {
+      setIsHydrating(false)
       console.error('Failed to hydrate:', e)
     }
   }
@@ -499,6 +505,7 @@ function MonitorPage() {
             execs={execs}
             selectedSession={selectedSession}
             onSessionSelect={setSelectedSession}
+            isHydrating={isHydrating}
           />
         </div>
       </div>

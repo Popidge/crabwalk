@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import {
   ReactFlow,
   Background,
@@ -15,7 +15,7 @@ import {
   MarkerType,
   ReactFlowProvider,
 } from '@xyflow/react'
-import { LayoutGrid, ArrowRightLeft, ArrowUpDown, Crosshair } from 'lucide-react'
+import { LayoutGrid, ArrowRightLeft, ArrowUpDown, Crosshair, Loader2 } from 'lucide-react'
 import '@xyflow/react/dist/style.css'
 import { SessionNode } from './SessionNode'
 import { ActionNode } from './ActionNode'
@@ -35,6 +35,7 @@ interface ActionGraphProps {
   execs: MonitorExecProcess[]
   selectedSession: string | null
   onSessionSelect: (key: string | null) => void
+  isHydrating?: boolean
 }
 
 /** Cast domain data to ReactFlow's Node data type */
@@ -82,6 +83,7 @@ function ActionGraphInner({
   execs,
   selectedSession,
   onSessionSelect,
+  isHydrating = false,
 }: ActionGraphProps) {
   // Crab AI state
   const crabRef = useRef<CrabAI>({
@@ -105,6 +107,10 @@ function ActionGraphInner({
   // Follow mode: auto-pan to new nodes
   const [followMode, setFollowMode] = useState(false)
   const isAnimatingRef = useRef(false)
+
+  // Transition for large graph layout calculations
+  const [isPending, startTransition] = useTransition()
+  const [asyncLayoutResult, setAsyncLayoutResult] = useState<{ nodes: Node[]; edges: Edge[] } | null>(null)
 
   // Get ReactFlow instance for viewport control
   const { setCenter } = useReactFlow()
@@ -358,22 +364,51 @@ function ActionGraphInner({
     return edges
   }, [sessions, visibleActions, visibleExecs, selectedSession])
 
-  // Apply layout
-  const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(() => {
-    if (rawNodes.length === 1) {
-      return {
-        nodes: [{ ...rawNodes[0]!, position: { x: 0, y: 0 } }],
-        edges: [],
+  // Apply layout - fast path for small graphs, transition for large graphs
+  const LARGE_GRAPH_THRESHOLD = 100
+
+  // Fast path for small graphs (synchronous)
+  const immediateLayout = useMemo(() => {
+    if (rawNodes.length < LARGE_GRAPH_THRESHOLD) {
+      if (rawNodes.length === 1) {
+        return {
+          nodes: [{ ...rawNodes[0]!, position: { x: 0, y: 0 } }],
+          edges: [],
+        }
       }
+      return layoutGraph(rawNodes, rawEdges, {
+        direction: layoutDirection,
+        nodeWidth: 200,
+        nodeHeight: 80,
+        rankSep: 60,
+        nodeSep: 30,
+      })
     }
-    return layoutGraph(rawNodes, rawEdges, {
-      direction: layoutDirection,
-      nodeWidth: 200,
-      nodeHeight: 80,
-      rankSep: 60,
-      nodeSep: 30,
-    })
+    return null
   }, [rawNodes, rawEdges, layoutDirection])
+
+  // Async path for large graphs (uses transition to keep UI responsive)
+  useEffect(() => {
+    if (rawNodes.length >= LARGE_GRAPH_THRESHOLD) {
+      startTransition(() => {
+        const result = layoutGraph(rawNodes, rawEdges, {
+          direction: layoutDirection,
+          nodeWidth: 200,
+          nodeHeight: 80,
+          rankSep: 60,
+          nodeSep: 30,
+        })
+        setAsyncLayoutResult(result)
+      })
+    } else {
+      // Clear async result when switching to small graph
+      setAsyncLayoutResult(null)
+    }
+  }, [rawNodes, rawEdges, layoutDirection])
+
+  // Use whichever result is available
+  const layoutedNodes = immediateLayout?.nodes ?? asyncLayoutResult?.nodes ?? []
+  const layoutedEdges = immediateLayout?.edges ?? asyncLayoutResult?.edges ?? []
 
   // Initial nodes with chaser (click handler added later)
   const initialNodes = useMemo(() => {
@@ -817,6 +852,26 @@ function ActionGraphInner({
             <LayoutGrid className="w-4 h-4" />
           </button>
         </div>
+        {/* Loading overlay for layout calculation */}
+        {isPending && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-shell-950/80 backdrop-blur-sm">
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-neon-cyan" />
+              <span className="font-mono text-sm text-gray-400">
+                Calculating layout for {rawNodes.length.toLocaleString()} nodes...
+              </span>
+            </div>
+          </div>
+        )}
+        {/* Loading overlay for initial hydration */}
+        {isHydrating && layoutedNodes.length === 0 && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-shell-950">
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-neon-cyan" />
+              <span className="font-mono text-sm text-gray-400">Loading graph data...</span>
+            </div>
+          </div>
+        )}
         <MiniMap
           nodeColor={(node) => {
             if (node.type === 'crab') return '#ef4444'
